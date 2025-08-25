@@ -1,0 +1,34 @@
+pipeline{
+    agent{label:"omkar"}
+    stages{
+        stage{
+            steps("Code Checkout"){
+                git url: "",branch:""
+                echo "code clonned successfully:"
+
+            }
+        }
+           stage{
+            steps(Build the image){
+                sh "docker build -t myiamge:latest"
+            }
+        }
+        stage{
+            steps(Push the image to the docker hub){ //this is configuring the docker 
+                echo "This step is for building an image for the code"
+                withCredential([usernamePassword(
+                    'credentialId':"dockerhub-cred"
+                    usernameVariable:"DockerHubUser"
+                    passwordVariable:"dockerhubpass")]){
+                sh "docker login -u ${env.DockerHubUser} -p ${env.dockerhubpass}"
+                sh "docker push myimage:latest"
+                    }
+            }
+        }
+        stage{
+            steps(Deploy ){
+                sh "docker run -d myimage:latest"
+            }
+        }
+    }
+}
